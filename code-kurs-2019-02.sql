@@ -77,6 +77,30 @@ SELECT geschlecht, AVG(annualIncome) FROM kurs_2019feb_shared.personen WHERE ges
 
 
 
+-- GROUP BY mit mehreren Kriterien
+
+SELECT
+    geschlecht, -- nicht random, weil für jeden Eintrag in der Gruppe gleich
+    country,
+    AVG(annualIncome) AS 'Durchschnittseinkommen'
+FROM
+    kurs_2019feb_shared.personen
+GROUP BY
+-- beliebig viele Gruppen
+-- durch Komma getrennt, also *nicht* mit AND verbinden
+    geschlecht,
+    country
+
+/*
+Ergebnis könnte sein:
+
+geschlecht country Durchschnittseinkommen
+0   DE  (berechnetes Durchschnittseinkommen für Frauen in Deutschland)
+0   US  (berechnetes Durchschnittseinkommen für Frauen in den USA)
+1   DE  (berechnetes Durchschnittseinkommen für Männer in Deutschland)
+1   US  (berechnetes Durchschnittseinkommen für Männer in den USA)
+*/
+
 
 -- LEFT JOIN
 
@@ -99,6 +123,86 @@ ON
 ORDER BY
     f.rottenTomatoesAvg DESC -- das höchste Rating zuerst
 LIMIT 10 -- nach 10 Filmen schneiden wir die Ausgabe ab, denn wir wollten die besten 10
+
+
+
+
+
+
+
+/* Mehrere Abfragen kombinieren
+
+Aufgabenstellung:
+- verbinden Sie die Tabelle airports mit der Tabelle country
+- geben Sie den Namen des Flughafen, den IATA-Code in Klammern und
+  das Land in ausgeschriebener Form aus
+- filtern Sie auf aktive Flughäfen in Deutschland
+
+*/
+
+
+
+-- erster Schritt (einfach nur der JOIN mit ALLEN Feldern beider Tabellen
+-- in der richtigen Zuordnung nebeneinander):
+
+SELECT
+   *
+FROM
+    geo.airports AS a
+LEFT JOIN
+    geo.country AS c
+ON
+    c.`ISO_3166-1-alpha-2_code` = a.country
+
+
+
+
+
+-- erfüllte Aufgabe:
+
+
+SELECT
+    -- Die Klammern müssen mittels CONCAT() um den IATA-Code gesetzt werden.
+    -- Wir wollen Sie nicht im Spaltennamen, sondern im Ergebnis.
+    CONCAT(a.name, ' (', a.iataCode, ')') AS 'Flughafen',
+    -- Mit dem Kürzel angeben aus welcher Tabelle die Column genutzt werden soll.
+    -- Unverzichtbar falls ein Column-Name in meheren Tabellen verwendet wird!
+    c.german_short AS 'Land' -- sinnvolles Umbenennen der Spalten
+FROM
+    geo.airports AS a
+LEFT JOIN -- Angabe welche Tabelle "gejoined" werden soll
+    geo.country AS c
+ON -- Das Kriterium mit welchem die Tabellen zusammengefügt werden:
+    c.`ISO_3166-1-alpha-2_code` = a.country
+    -- ACHTUNG: das Feld ISO.. muss in Backticks (nicht AFZ!), 
+    -- weil es ein Feldname mit Sonderzeichen ist!
+    -- Die Tabelle country hat als Primärschlüssel den ISO-Code.
+    -- Logik: das Feld in der Fremdtabelle soll welchem Feld in der 
+    -- Tabelle entsprechen, die wir mit SELECT zuerst abfragen?
+WHERE
+    a.country = 'DE' AND active = 1
+    -- zwei Filterbedingungen, die beide erfüllt sein müssen.
+    -- kein BER in der Ausgabe
+ORDER BY
+    c.german_short
+    -- jetzt nachdem klar ist, was angezeigt wird, können wir sortieren
+    
+/* AUSGABE:
+Flughafen Land
+Flughafen Bremen (BRE) Deutschland
+Flughafen Dortmund (DTM) Deutschland
+Flughafen Frankfurt am Main (FRA) Deutschland
+Flughafen Hamburg (HAM) Deutschland
+Flughafen Leipzig/Halle (LEJ) Deutschland
+Flughafen München (MUC) Deutschland
+
+[...]
+
+*/
+
+
+
+
 
 /* *********************************************************************** 
 *  MITTWOCH
