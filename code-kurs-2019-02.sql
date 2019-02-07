@@ -274,6 +274,51 @@ UPDATE TIESv4 SET scurrency = 'USD' WHERE scurrency IN('U.S. dollars', 'US dolla
 *  DONNERSTAG
 *************************************************************************/
 
+-- Den Import von CSV-Dateien besprochen. Hier mehr zum Vorgehen bei sehr
+-- großen Dateien:
+-- https://www.ruediger-voigt.eu/big-dataset-csv-import-to-relational-databases.html
+
+
+-- Wir arbeiten mit dem GeoNames-Datensatz. Dieser ist zu finden unter:
+-- https://www.geonames.org/
+
+-- Wir möchten herausfinden wie viele geographische Einheiten pro Land gespeichert sind.
+SELECT
+    country_code AS 'Ländercode',
+    COUNT(*) AS numObjects
+FROM
+    `geonames2019feb`
+WHERE
+    country_code IS NOT NULL
+GROUP BY
+    country_code
+ORDER BY 
+    numObjects DESC
+    
+-- "Problem": wir bekommen eine lange Liste mit allen Country-Codes und der
+-- Zahl der ihnen zugeordneten Objekte.
+-- Eine Lösung: wir begrenzen die Liste mit LIMIT
+-- Bessere Lösung: Wir verwenden HAVING und prüfen damit, ob der BERECHNETE Wert 
+-- eine Bedingung (hier eine Mindestanzahl) erfüllt:
+
+SELECT
+    country_code AS 'Ländercode',
+    COUNT(*) AS numObjects
+FROM
+    `geonames2019feb`
+WHERE
+    country_code IS NOT NULL
+GROUP BY
+    country_code
+HAVING
+    -- nur Ländercodes, denen mehr als 250.000 Objekte zugeordnet sind:
+    numObjects > 250000
+ORDER BY
+    numObjects DESC;
+
+-- HAVING funktioniert sehr ähnlich zu WHERE, wird nur später (nach den Berechnungen)
+-- ausgewertet, wo WHERE nicht mehr beachtet wird!
+
 /* *********************************************************************** 
 *  FREITAG
 *************************************************************************/
