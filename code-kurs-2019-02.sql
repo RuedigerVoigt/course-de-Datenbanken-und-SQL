@@ -221,6 +221,55 @@ WHERE annualIncome = (SELECT MAX(annualIncome) FROM kurs_2019feb_shared.personen
 
 
 
+
+-- Vorbereitung zur Aufbereitung von Daten: 
+-- verschiedene Werte aus gleichartigen Spalten auflisten
+-- Ausgangslage: die Datenbank hat in mehreren Spalten Währungen gelistet, nutzt
+-- aber für ein und dieselbe Währung verschiedene Schreibweisen:
+
+SELECT DISTINCT(tcurrency) FROM TIESv4
+UNION -- verbindet die beiden Ergebnisse und im Gegensatz zu UNION ALL werden Dubletten entfernt
+SELECT DISTINCT(scurrency) FROM TIESv4;
+
+-- Um zu prüfen wie oft eine Schreibweise vorkommt:
+SELECT
+    tcurrency,
+    COUNT(*) AS 'Häufigkeit'
+FROM TIESv4
+WHERE tcurrency IS NOT NULL
+GROUP BY tcurrency
+ORDER BY 'Häufigkeit' DESC;
+
+
+-- Das kann man auch über mehrere Spalten hinweg zählen.
+-- Dazu SELECT auf ein Subselect mit UNION ALL
+SELECT
+    tcurrency,
+    COUNT(*) AS 'Häufigkeit'
+FROM (
+    SELECT tcurrency FROM TIESv4
+    UNION ALL
+    SELECT scurrency FROM TIESv4
+    -- kein Semikolon innerhalb der Klammer
+     ) AS CurrencyColumns -- unbedingt benennen
+WHERE
+    tcurrency IS NOT NULL
+GROUP BY
+    tcurrency
+ORDER BY
+    `Häufigkeit` DESC;
+    
+
+
+
+-- Nachdem nun alle Schreibweisen bekannt sind, kann die Schreibweise auf den ISO-Standard
+-- vereinheitlicht werden. WHERE IN() akzeptiert eine Liste und erleichtert das.
+-- ACHTUNG: das muss für jede Spalte einzeln geschehen:
+UPDATE TIESv4 SET tcurrency = 'USD' WHERE tcurrency IN('U.S. dollars', 'US dollars', 'US dollas');
+UPDATE TIESv4 SET scurrency = 'USD' WHERE scurrency IN('U.S. dollars', 'US dollars', 'US dollas');
+
+
+
 /* *********************************************************************** 
 *  DONNERSTAG
 *************************************************************************/
