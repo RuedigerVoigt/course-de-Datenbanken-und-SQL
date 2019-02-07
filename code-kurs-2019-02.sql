@@ -287,7 +287,7 @@ SELECT
     country_code AS 'Ländercode',
     COUNT(*) AS numObjects
 FROM
-    `geonames2019feb`
+    `geo`.`geonames2019feb`
 WHERE
     country_code IS NOT NULL
 GROUP BY
@@ -305,7 +305,7 @@ SELECT
     country_code AS 'Ländercode',
     COUNT(*) AS numObjects
 FROM
-    `geonames2019feb`
+    `geo`.`geonames2019feb`
 WHERE
     country_code IS NOT NULL
 GROUP BY
