@@ -38,9 +38,6 @@ WHERE
 ORDER BY
     `iataCode` ASC;
  
- Core_Legal
- 
- 
 -- ------------------------------------------------------------
 -- DIENSTAG 23.07.2019
 -- ------------------------------------------------------------
@@ -132,7 +129,7 @@ SELECT * FROM meineTabelle WHERE irgendeineSpalte IS NOT NULL;
 -- ---------------------------------------------
 
 SELECT
--- es könnten Spaltennamen in mehreren tabellen auftauchen. Deshalb 
+-- es könnten Spaltennamen in mehreren Tabellen auftauchen. Deshalb 
 -- DB-Kürzel notwendig.
   u.name,
   c.japanese_short -- hier die Übersetzung ausgewählt
@@ -144,6 +141,64 @@ WHERE c.german_short IS NOT NULL AND u.country = 'DE';
 -- ------------------------------------------------------------
 -- MITTWOCH 24.07.2019
 -- ------------------------------------------------------------
+
+-- Alle *unterschiedlichen* Werte einer Spalte:
+SELECT DISTINCT columName FROM tableName;
+
+-- FALLE: folgendes Statement gibt nicht die Spalten A und B
+--        zurück, sondern den Inhalt von A mit dem 
+--        Spaltentitel B.
+
+SELECT A B FROM irgendeineTabelle;
+
+-- Grund: das ist aufgrund des fehlenden Komma zwischen A und B
+--        eine Kurzschreibweise für:
+SELECT A AS B FROM irgendeineTabelle;
+
+-- Filme, absteigend sortiert nach Rating.
+-- Über ein LEFT JOIN die Bezeichnung
+-- für das Genre eingebunden.
+
+-- Aufgabe: Finden Sie die 10 besten Filme in der Datenbank
+CREATE VIEW top10 AS -- AS ist hier nicht Umbennenung.
+-- Alles nach dem AS ist die Definition des View-Inhalts
+SELECT
+    f.titleEn AS Titel,
+    g.genreName AS Genre,
+    f.year AS Jahr,
+    f.myRating * 2 AS `Eigenes Rating`, -- rechnen innerhalb der Anzeige
+    f.rottenTomatoesAvg AS 'Rotten Tomatoe Bewertung'
+FROM
+    movies.film AS f
+LEFT JOIN movies.genre AS g
+    ON f.primaryGenre = g.id
+ORDER BY f.myRating DESC 
+LIMIT 10; -- Beschränkung auf die ersten 10 Ergebnisse
+-- Hinweis: bei Microsoft SQL Server ist es das Kommando
+--          TOP statt LIMIT
+
+
+-- Die Zuordnungstabelle gibt an, welcher Schauspieler
+-- welche Rolle in welchem Film hatte. Geben Sie diese
+-- sinnvoll aus:
+SELECT
+    -- CONCAT fügt den Inhalt von Feldern in Eines
+    -- zusammen.
+    CONCAT(a.FirstName, ' ', a.LastName) AS Actor,
+    f.titleEN AS 'Titel',
+    r.name AS 'Rolle'
+FROM movies.`film_actor` z -- Kurzschreibweise: lasse AS weg
+-- beliebig viele LEFT JOIN hintereinander
+LEFT JOIN movies.actors a
+    ON z.actor = a.id
+LEFT JOIN movies.film f
+    ON z.film = f.id
+LEFT JOIN movies.role r
+    ON z.role = r.id
+ORDER BY Actor ASC;
+-- MariaDB kann nach einem Feld sortieren, welches nur
+-- in diesem Befehl definiert ist.
+
 
 
 -- ------------------------------------------------------------
