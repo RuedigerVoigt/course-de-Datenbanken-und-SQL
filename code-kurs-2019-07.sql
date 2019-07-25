@@ -199,11 +199,37 @@ ORDER BY Actor ASC;
 -- MariaDB kann nach einem Feld sortieren, welches nur
 -- in diesem Befehl definiert ist.
 
-
-
 -- ------------------------------------------------------------
 -- DONNERSTAG 25.07.2019
 -- ------------------------------------------------------------
+
+-- ! BEISPIEL FÜR EINEN KLASSISCHEN FEHLER:
+SELECT primaryGenre, titleEn, AVG(myRating) 
+FROM `film` 
+GROUP BY primaryGenre;
+-- nach titleEn wurde nicht gruppiert
+-- Trotzdem wählt MariaDB einen zufälligen (!) Wert aus der Spalte aus.
+-- Andere Datenbanksysteme führen einen solchen Befehl 
+-- nicht aus und werten das als Syntaxfehler.
+-- Das strenge Verhalten kann man bei MariaDB aktivieren,
+-- aber per default ist es aus.
+
+
+-- Wenn Sie gruppieren, werden Aggregatfunktionen auf die jeweilige
+-- Gruppe angewandt.
+SELECT
+    g.genrename AS Genre,
+    COUNT(*) AS Anzahl,
+    ROUND(AVG(myRating),2) AS `Durchschnitts-Rating`,
+    MIN(myRating) AS `niedrigste Wertung`,
+    MAX(myRating) AS `höchste Wertung`,
+    ROUND(AVG(rottenTomatoesAvg),2) AS `RT`
+FROM movies.film AS f
+LEFT JOIN movies.genre AS g
+    ON f.primaryGenre = g.id
+GROUP BY primaryGenre 
+HAVING Anzahl > 5 
+ORDER BY Anzahl;
 
 -- ------------------------------------------------------------
 -- FREITAG 26.07.2019
