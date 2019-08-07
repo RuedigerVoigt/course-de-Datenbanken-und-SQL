@@ -1,8 +1,8 @@
 # Aufbau einer Datenbankverbindung mit Python
 
 
-* **connect-to-db.py** enthält den eigentlichen Code zum Aufbau der Verbindung
-* **config.py** enthält getrennt davon die nötigen Parameter zum Verbindungsaufbau (insbesondere Username und Password). Diese sollten normalerweise außerhalb des Repository gespeichert werden.
+* **[connect-to-db.py](connect-to-db.py)** enthält den eigentlichen Code zum Aufbau der Verbindung
+* **[config.py](config.py)** enthält getrennt davon die nötigen Parameter zum Verbindungsaufbau (insbesondere Username und Password). Diese sollten normalerweise außerhalb des Repository gespeichert werden.
 
 Libraries:
 
