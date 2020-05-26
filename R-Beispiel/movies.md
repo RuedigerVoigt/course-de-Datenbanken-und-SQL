@@ -35,13 +35,15 @@ con <- dbConnect(RMariaDB::MariaDB(),
 
 Wenn Sie das mit Ihrem Kursaccount nachvollziehen möchten, müssen Sie die Daten entsprechend anpassen.
 
+Vor einiger Zeit hatte ich eine [ausführlichere Anleitung in englischer Sprache](https://www.ruediger-voigt.eu/accessing-databases-with-r.html) verfasst, die andere Datenbanken und weitere Aspekte des Setup abhandelt.
+
 ## Abfrage der Datenbank
 
 Zunächst schreiben wir eine ganz normale SQL-Query:
 ```R
 queryGetFilms = "SELECT year,
                         titleEn,
-                        myRating,
+                        myRating * 2 AS myRating,
                         ratingSiteAvg,
                         violence,
                         primaryGenre as genre
@@ -49,6 +51,8 @@ queryGetFilms = "SELECT year,
                         WHERE myRating IS NOT NULL AND
                         ratingSiteAvg is NOT NULL";
 ```
+
+Wir multiplizieren `myRating` innerhalb der Query mit 2, weil myRating von 0 bis 5 reicht, während die Rating Site Bewertungen von 0 bis 10 vergibt. So können wir später die Ratings miteinander vergleichen.
 
 Dann schicken wir sie an die Datenbank und laden das Ergebnis herunter:
 
@@ -163,3 +167,45 @@ ratingByYear
 Dieser Scatterplot *suggeriert* alte Filme waren besser. Aber es fällt sofort auf, dass mehr junge als alte Filme im Datensatz enthalten sind.
 
 In unserem Datensatz sind Filme enthalten, die in den letzten Jahren gesehen und bewertet wurden. Die wahrscheinliche Erklärung ist, dass viele alte Filme in den Archiven verschwunden sind - mit der Ausnahme besonders guter Filme. Der Scatterplot zeigt uns hier also nur den selection bias im Datensatz.
+
+## Kann ich mich auf Ratings verlassen?
+
+Der Datensatz enthält nicht nur den Scorewert der Ratingsite, sondern auch persönliche Bewertungen für etliche Filme. Das persönliche Rating wurde bereits in der SQL-Query skaliert, damit beide Variablen den gleichen Range haben.
+
+Ist der Wert der Ratingseite ein guter Predictor dafür, dass der Film *mir persönlich* gefällt? Um das rauszufinden, stellen wir die Ratings gegenüber:
+
+```R
+ratingsCompared <- ggplot() +
+  geom_point(data = movies, aes(
+    x = rottenTomatoesAvg,
+    y = (myRating)
+  )) +
+  geom_abline(intercept = 0, colour = 'red') +
+  xlim(0, 10) +
+  ylim(0, 10) +
+  ggtitle('Ratings im Vergleich') +
+  xlab('Rating Site') +
+  ylab('persönliches Rating') +
+  theme_bw()
+
+ratingsCompared
+```
+
+Mit `geom_abline` zeichnen wir eine Gerade im 45 Grad Winkel. Lägen alle Punkte auf dieser Gerade, wäre die Rating-Seite ein perfekter Predictor.
+
+![Ratings im Vergleich](./images/ratings-compared.png)
+
+Sehr viele Filme finden sich *nahe* dieser Geraden, aber gerade wenn die Rating-Seite sehr hohe Bewertungen vergibt, gibt es doch etliche Outlier.
+
+Wenn Sie die Qualität der Vorhersage genau beurteilen möchten, bietet sich ein einfaches lineares Model an:
+
+```R
+lm(myRating ~ ratingSiteAvg, movies)
+```
+
+Das ergibt mit dem aktuellen Datensatz:
+```R
+Coefficients:
+      (Intercept)      ratingSiteAvg
+           1.7513             0.5557
+```
